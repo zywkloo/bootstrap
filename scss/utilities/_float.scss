@@ -1,9 +1,74 @@
+// stylelint-disable declaration-no-important
+@function from-to($from, $to) {
+  $result: ();
+  @for $i from $from through $to {
+    $result: append($result, $i);
+  }
+  @return zip($result, $result);
+}
+
+$float-utilities: (
+  property: float,
+  values: left right none
+) !default;
+
+$display-utilities: (
+  responsive: true,
+  property: display,
+  property-class: d,
+  values: block table
+) !default;
+
+$order-utilities: (
+  responsive: true,
+  property: order,
+  values: join(
+    (
+      first: -1,
+      last: 13
+    ),
+    from-to(0, 12)
+  ),
+) !default;
+
+
+$utilities: (
+  $float-utilities,
+  $display-utilities,
+  $order-utilities
+) !default;
+
+// Loop over every breakpoint
 @each $breakpoint in map-keys($grid-breakpoints) {
+  // Generate media query if needed
   @include media-breakpoint-up($breakpoint) {
     $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+    // Loop over each utility property
+    @each $utility in $utilities {
 
-    .float#{$infix}-left  { @include float-left; }
-    .float#{$infix}-right { @include float-right; }
-    .float#{$infix}-none  { @include float-none; }
+      // Only render if responsive media queries are enabled or if it's the base media query
+      @if (map_get($utility, responsive) or $infix == "") {
+        $values: map_get($utility, values);
+        @debug ($values);
+        @debug (nth($values, 1));
+
+        @if type_of($values) == "string" {
+          $values: zip($values, $values);
+        }
+        @else if type_of(nth($values, 1)) != "list" {
+          $values: zip($values, $values);
+        }
+
+        @each $value in $values {
+          $property: map_get($utility, property);
+          $property-class: map_get($utility, property-class);
+          $property-class: if($property-class, $property-class, $property);
+
+          .#{$property-class}#{$infix}-#{nth($value, 1)} {
+            #{$property}: #{nth($value, 2)} !important;
+          }
+        }
+      }
+    }
   }
 }
