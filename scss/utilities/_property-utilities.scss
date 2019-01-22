@@ -1,4 +1,5 @@
 // stylelint-disable declaration-no-important
+
 @function from-to($from, $to) {
   $result: ();
   @for $i from $from through $to {
@@ -7,16 +8,28 @@
   @return zip($result, $result);
 }
 
+$align-utilities: (
+  responsive: true,
+  property: vertical-align,
+  property-class: align,
+  values: baseline top middle bottom text-bottom text-top
+) !default;
+
 $float-utilities: (
   property: float,
   values: left right none
+) !default;
+
+$overflow-utilities: (
+  property: overflow,
+  values: auto hidden,
 ) !default;
 
 $display-utilities: (
   responsive: true,
   property: display,
   property-class: d,
-  values: block table
+  values: none inline inline-block block table table-row table-cell flex inline-flex
 ) !default;
 
 $order-utilities: (
@@ -31,11 +44,69 @@ $order-utilities: (
   ),
 ) !default;
 
+$shadow-utilities: (
+  property: box-shadow,
+  property-class: shadow,
+  values: (
+    sm: $box-shadow-sm,
+    null: $box-shadow,
+    lg: $box-shadow-lg,
+    none: none,
+  )
+) !default;
+
+$position-utilities: (
+  property: position,
+  values: static relative absolute fixed sticky
+) !default;
+
+$visibility-utilities: (
+  property: visibility,
+  values: visible hidden
+) !default;
+
+
+$width-utilities: (
+  property: width,
+  property-class: w,
+  values: (
+    25: 25%,
+    50: 50%,
+    75: 75%,
+    100: 100%,
+    auto: auto
+  )
+) !default;
+
+$height-utilities: (
+  property: height,
+  property-class: h,
+  values: (
+    25: 25%,
+    50: 50%,
+    75: 75%,
+    100: 100%,
+    auto: auto
+  )
+) !default;
+
+$flex-direction-utilities: (
+  responsive: true,
+  property: flex-direction,
+  property-class: flex,
+  values: row column row-reverse column-reverse
+) !default;
 
 $utilities: (
   $float-utilities,
   $display-utilities,
-  $order-utilities
+  $order-utilities,
+  $overflow-utilities,
+  $shadow-utilities,
+  $height-utilities,
+  $width-utilities,
+  $align-utilities,
+  $visibility-utilities
 ) !default;
 
 // Loop over every breakpoint
@@ -64,7 +135,9 @@ $utilities: (
           $property-class: map_get($utility, property-class);
           $property-class: if($property-class, $property-class, $property);
 
-          .#{$property-class}#{$infix}-#{nth($value, 1)} {
+          $property-class-modifier: if(nth($value, 1), "-" + nth($value, 1), "");
+
+          .#{$property-class + $infix + $property-class-modifier} {
             #{$property}: #{nth($value, 2)} !important;
           }
         }
