@@ -17,15 +17,14 @@ body {
     padding-right: 1rem;
     padding-left: 1rem;
     overflow-y: auto;
-    visibility: hidden;
     background-color: #343a40;
-    transition-timing-function: ease-in-out;
-    transition-duration: .3s;
-    transition-property: left, visibility;
+    transition: -webkit-transform .3s ease-in-out;
+    transition: transform .3s ease-in-out;
+    transition: transform .3s ease-in-out, -webkit-transform .3s ease-in-out;
   }
   .offcanvas-collapse.open {
-    left: 0;
-    visibility: visible;
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
   }
 }
 
