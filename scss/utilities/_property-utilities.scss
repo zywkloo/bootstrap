@@ -27,6 +27,7 @@ $overflow-utilities: (
 
 $display-utilities: (
   responsive: true,
+  print: true,
   property: display,
   property-class: d,
   values: none inline inline-block block table table-row table-cell flex inline-flex
@@ -36,11 +37,11 @@ $order-utilities: (
   responsive: true,
   property: order,
   values: join(
-    (
-      first: -1,
-      last: 13
-    ),
-    from-to(0, 12)
+      (
+        first: -1,
+        last: $grid-columns + 1
+      ),
+      from-to(0, $grid-columns)
   ),
 ) !default;
 
@@ -66,6 +67,8 @@ $visibility-utilities: (
 ) !default;
 
 
+// Sizing utilities
+
 $width-utilities: (
   property: width,
   property-class: w,
@@ -90,11 +93,128 @@ $height-utilities: (
   )
 ) !default;
 
+
+// Flex utilities
+
 $flex-direction-utilities: (
   responsive: true,
   property: flex-direction,
   property-class: flex,
   values: row column row-reverse column-reverse
+) !default;
+
+$flex-utilities: (
+  responsive: true,
+  property: flex,
+  values: (fill: 1 1 auto)
+) !default;
+
+$flex-grow-utilities: (
+  responsive: true,
+  property: flex-grow,
+  values: 0 1
+) !default;
+
+$flex-shrink-utilities: (
+  responsive: true,
+  property: flex-shrink,
+  values: 0 1
+) !default;
+
+$flex-wrap-utilities: (
+  responsive: true,
+  property: flex-wrap,
+  property-class: flex,
+  values: wrap nowrap wrap-reverse
+) !default;
+
+$justify-content-utilities: (
+  responsive: true,
+  property: justify-content,
+  values: flex-start flex-end center space-between space-around
+) !default;
+
+$align-items-utilities: (
+  responsive: true,
+  property: align-items,
+  values: flex-start flex-end center baseline stretch
+) !default;
+
+$align-content-utilities: (
+  responsive: true,
+  property: align-content,
+  values: flex-start flex-end center space-between space-around stretch
+) !default;
+
+$align-self-utilities: (
+  responsive: true,
+  property: align-self,
+  values: auto flex-start flex-end center baseline stretch
+) !default;
+
+
+// Text utilities
+
+$text-align-utilities: (
+  property: text-align,
+  property-class: text,
+  values: left right center
+) !default;
+
+
+// Margin utilities
+
+$margin-utilities: (
+  property: margin,
+  property-class: m,
+  values: $spacers
+) !default;
+
+$margin-x-utilities: (
+  property: margin-right margin-right,
+  property-class: mx,
+  values: $spacers
+) !default;
+
+$margin-y-utilities: (
+  property: margin-top margin-bottom,
+  property-class: my,
+  values: $spacers
+) !default;
+
+$margin-top-utilities: (
+  property: margin-top,
+  property-class: mt,
+  values: $spacers
+) !default;
+
+$margin-right-utilities: (
+  property: margin-right,
+  property-class: mr,
+  values: $spacers
+) !default;
+
+$margin-bottom-utilities: (
+  property: margin-bottom,
+  property-class: mb,
+  values: $spacers
+) !default;
+
+$margin-left-utilities: (
+  property: margin-left,
+  property-class: ml,
+  values: $spacers
+) !default;
+
+$font-weight-utilities: (
+  property: font-weight,
+  values: (
+    light: $font-weight-light,
+    lighter: $font-weight-lighter,
+    normal: $font-weight-normal,
+    bold: $font-weight-bold,
+    bolder: $font-weight-bolder
+  )
 ) !default;
 
 $utilities: (
@@ -106,7 +226,23 @@ $utilities: (
   $height-utilities,
   $width-utilities,
   $align-utilities,
-  $visibility-utilities
+  $visibility-utilities,
+  $flex-utilities,
+  $flex-grow-utilities,
+  $flex-shrink-utilities,
+  $flex-wrap-utilities,
+  $justify-content-utilities,
+  $align-items-utilities,
+  $align-content-utilities,
+  $align-self-utilities,
+  $font-weight-utilities,
+  $margin-utilities,
+  $margin-x-utilities,
+  $margin-y-utilities,
+  $margin-top-utilities,
+  $margin-right-utilities,
+  $margin-bottom-utilities,
+  $margin-left-utilities,
 ) !default;
 
 // Loop over every breakpoint
@@ -120,26 +256,64 @@ $utilities: (
       // Only render if responsive media queries are enabled or if it's the base media query
       @if (map_get($utility, responsive) or $infix == "") {
         $values: map_get($utility, values);
-        @debug ($values);
-        @debug (nth($values, 1));
 
         @if type_of($values) == "string" {
           $values: zip($values, $values);
-        }
-        @else if type_of(nth($values, 1)) != "list" {
+        } @else if type_of(nth($values, 1)) != "list" {
           $values: zip($values, $values);
         }
 
         @each $value in $values {
-          $property: map_get($utility, property);
-          $property-class: map_get($utility, property-class);
-          $property-class: if($property-class, $property-class, $property);
+          $properties: map_get($utility, property);
 
-          $property-class-modifier: if(nth($value, 1), "-" + nth($value, 1), "");
 
-          .#{$property-class + $infix + $property-class-modifier} {
-            #{$property}: #{nth($value, 2)} !important;
+          @if type_of($properties) == "string" {
+            $properties: append((), $properties);
           }
+
+          @each $property in $properties {
+
+            $property-class: map_get($utility, property-class);
+            $property-class: if($property-class, $property-class, $property);
+
+            // Don't prefix if value key is null (eg. with shadow class)
+            $property-class-modifier: if(nth($value, 1), "-" + nth($value, 1), "");
+
+            .#{$property-class + $infix + $property-class-modifier} {
+              #{$property}: #{nth($value, 2)} !important;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+// Loop over each utility property
+@media print {
+  @each $utility in $utilities {
+    @if map_get($utility, print) == true {
+
+      // Lot of duplicate code copied from above
+      // TODO: cleanup
+      $values: map_get($utility, values);
+
+      @if type_of($values) == "string" {
+        $values: zip($values, $values);
+      } @else if type_of(nth($values, 1)) != "list" {
+        $values: zip($values, $values);
+      }
+
+      @each $value in $values {
+        $property: map_get($utility, property);
+        $property-class: map_get($utility, property-class);
+        $property-class: if($property-class, $property-class, $property);
+
+        $property-class-modifier: if(nth($value, 1), "-" + nth($value, 1), "");
+
+        .#{$property-class + '-print' + $property-class-modifier} {
+          #{$property}: #{nth($value, 2)} !important;
         }
       }
     }
